@@ -1,8 +1,9 @@
-import PropTypes from 'prop-types';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import iziToast from 'izitoast';
-import 'izitoast/dist/css/iziToast.min.css';
+import { addContact } from '../../redux/contactsSlice';
+import { useDispatch } from 'react-redux';
+import { useId } from 'react';
+import { nanoid } from 'nanoid';
 import { BsPhone, BsPerson, BsPersonAdd } from 'react-icons/bs';
 import css from './ContactForm.module.css';
 
@@ -22,22 +23,19 @@ const validationSchema = Yup.object().shape({
     .required('Required'),
 });
 
-const ContactForm = ({ contacts, onSubmit }) => {
-  const handleSubmit = (values, { resetForm }) => {
-    if (
-      contacts.some(
-        contact => contact.name.toLowerCase() === values.name.toLowerCase()
-      )
-    ) {
-      iziToast.warning({
-        position: 'topRight',
-        message: `${values.name} is already in contacts`,
-      });
-      resetForm();
-      return;
-    }
+const ContactForm = () => {
+  const dispatch = useDispatch();
 
-    onSubmit(values);
+  const usernameId = useId();
+  const numberId = useId();
+
+  const handleSubmit = (values, { resetForm }) => {
+    const newContact = {
+      id: nanoid(),
+      name: values.name,
+      number: values.number,
+    };
+    dispatch(addContact(newContact));
     resetForm();
   };
 
@@ -48,7 +46,7 @@ const ContactForm = ({ contacts, onSubmit }) => {
       validationSchema={validationSchema}
     >
       <Form autoComplete="off" className={css.contactFormWrap}>
-        <label className={css.contactFormLabel} htmlFor="name">
+        <label className={css.contactFormLabel} htmlFor={usernameId}>
           Name
         </label>
         <div className={css.contactFormInputWrap}>
@@ -56,7 +54,7 @@ const ContactForm = ({ contacts, onSubmit }) => {
             className={css.contactFormInput}
             type="text"
             name="name"
-            id="name"
+            id={usernameId}
           />
           <BsPerson className={css.contactFormIcon} size="20" />
         </div>
@@ -66,7 +64,7 @@ const ContactForm = ({ contacts, onSubmit }) => {
           className={css.contactFormError}
         />
 
-        <label className={css.contactFormLabel} htmlFor="number">
+        <label className={css.contactFormLabel} htmlFor={numberId}>
           Number
         </label>
         <div className={css.contactFormInputWrap}>
@@ -74,7 +72,7 @@ const ContactForm = ({ contacts, onSubmit }) => {
             className={css.contactFormInput}
             type="text"
             name="number"
-            id="number"
+            id={numberId}
           />
           <BsPhone className={css.contactFormIcon} size="20" />
         </div>
@@ -91,11 +89,6 @@ const ContactForm = ({ contacts, onSubmit }) => {
       </Form>
     </Formik>
   );
-};
-
-ContactForm.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
-  contacts: PropTypes.array.isRequired,
 };
 
 export default ContactForm;
